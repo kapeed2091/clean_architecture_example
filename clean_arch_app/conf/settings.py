@@ -1,0 +1,1 @@
+# write your clean_arch_app settings
