@@ -5,25 +5,22 @@ from .validator_class import ValidatorClass
 
 @validate_decorator(validator_class=ValidatorClass)
 def api_wrapper(*args, **kwargs):
-    # ---------MOCK IMPLEMENTATION---------
+    user = kwargs['user']
+    request_data = kwargs['request_data']
 
-    try:
-        from clean_arch_app.views.create_post.tests.test_case_01 \
-            import TEST_CASE as test_case
-    except ImportError:
-        from clean_arch_app.views.create_post.tests.test_case_01 \
-            import test_case
+    content = request_data['content']
+    created_by_id = user.id
 
-    from django_swagger_utils.drf_server.utils.server_gen.mock_response \
-        import mock_response
-    try:
-        from clean_arch_app.views.create_post.request_response_mocks \
-            import RESPONSE_200_JSON
-    except ImportError:
-        RESPONSE_200_JSON = ''
-    response_tuple = mock_response(
-        app_name="clean_arch_app", test_case=test_case,
-        operation_name="create_post",
-        kwargs=kwargs, default_response_body=RESPONSE_200_JSON,
-        group_name="")
-    return response_tuple[1]
+    from clean_arch_app.interactors.create_post_interactor import CreatePostInteractor
+    from clean_arch_app.storages.post_storage_impl import PostStorageImpl
+    from clean_arch_app.presenters.json_presenter import JsonPresenter
+
+    post_storage = PostStorageImpl()
+    json_presenter = JsonPresenter()
+
+    interactor = CreatePostInteractor(post_storage=post_storage,
+                                      presenter=json_presenter)
+    response = interactor.create_post(post_content=content,
+                                      created_by_id=created_by_id)
+
+    return response
